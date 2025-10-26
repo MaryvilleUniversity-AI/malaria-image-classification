@@ -24,7 +24,7 @@ streamlit run app.py
 ```
 
 ## Dataset
-The model uses the [Cell Images for Detecting Malaria dataset]("https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria") from Kaggle.
+The model uses the [Cell Images for Detecting Malaria dataset](https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria) from Kaggle.
 * Contains images of **Parasitized** and **Uninfected** blood cells.
 * Images are resized to 128x128 pixels for model training.
 
@@ -52,5 +52,5 @@ streamlit run app.py
 4. Upload an image of a blood cell and see the prediction (Parasitized vs Uninfected).
 
 ## Acknowledgements
-* Dataset: [Kaggle - Cell Images for Detecting Malaria]("https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria")
+* Dataset: [Kaggle - Cell Images for Detecting Malaria](https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria)
 * Hackathon: **InnovateMU 2025**
