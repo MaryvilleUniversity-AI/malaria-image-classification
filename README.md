@@ -5,7 +5,7 @@
 
 
 # Malaria Image Classification using CNN
-A **Convolutional Neural Network (CNN)** based machine learning model to detect **malaria-infected blood cells**. This project was developed for the **InnovateMU Hackathon** to demonstrate how AI can assist in early malaria diagnosis.
+A **Convolutional Neural Network (CNN)** based machine learning model to detect **malaria-infected blood cells**. This project was developed for the **InnovateMU Hackathon** to demonstrate how Machine Learning can assist in early malaria diagnosis.
 
 ## Project Overview
 Malaria is a life-threatening disease affecting millions worldwide. Early and accurate detection is critical but often limited by resource constraints and reliance on manual microscopy. This project automates malaria detection using **cell image classification**, providing fast, reliable predictions.
