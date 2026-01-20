@@ -33,3 +33,6 @@ build/
 # Data files
 data/
 *.zip
+
+# Ignore Kaggle API token
+kaggle.json

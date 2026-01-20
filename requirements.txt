@@ -63,6 +63,7 @@ jupyterlab==4.4.4
 jupyterlab_git==0.51.2
 jupyterlab_pygments==0.3.0
 jupyterlab_server==2.27.3
+kaggle==1.5.16
 keras==3.11.3
 kiwisolver==1.4.8
 libclang==18.1.1
@@ -85,6 +86,7 @@ nest-asyncio==1.6.0
 networkx==3.3
 notebook_shim==0.2.4
 numpy==2.3.1
+opencv-python==4.10.0.84
 opt_einsum==3.4.0
 optree==0.17.0
 overrides==7.7.0
