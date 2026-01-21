@@ -1,67 +1,174 @@
- # InnovateMU Hackathon
-
-
-
-
-
+# InnovateMU Hackathon
 # Malaria Image Classification using CNN
-A **Convolutional Neural Network (CNN)** based machine learning model to detect **malaria-infected blood cells**. This project was developed for the **InnovateMU Hackathon** to demonstrate how Machine Learning can assist in early malaria diagnosis.
+
+A **Convolutional Neural Network (CNN)** based machine learning model to detect **malaria-infected blood cells** from microscopic images.
+Developed for the **InnovateMU Hackathon 2025**, this project demonstrates how deep learning can assist in automated medical image diagnosis.
+
+---
 
 ## Project Overview
-Malaria is a life-threatening disease affecting millions worldwide. Early and accurate detection is critical but often limited by resource constraints and reliance on manual microscopy. This project automates malaria detection using **cell image classification**, providing fast, reliable predictions.
 
-Key features:
-* Classifies blood cell images as **Parasitized** or **Uninfected**.
-* CNN-based model trained on the **Kaggle Malaria Dataset**.
-* High validation accuracy (~94%).
-* **Interactive Streamlit App** for image upload and instant predictions.
+Malaria is a life-threatening disease affecting millions worldwide. Traditional diagnosis relies on manual microscopy, which is time-consuming and prone to human error. This project automates malaria detection using **image classification**, enabling fast and consistent predictions.
+
+**Key features:**
+
+- Binary classification: **Parasitized** vs **Uninfected**.
+- CNN trained on the **Kaggle Malaria Dataset**
+- Validation accuracy ~**94%**
+- **Interactive Streamlit Web App** for real-time inference
+- End-to-end pipeline: data cleaning -> training -> evaluation -> deployment
+
+---
+
+## Project Structure
+
+malaria-image-classification/
+
+│
+
+├── data/
+
+│ ├── raw/ # Raw Kaggle dataset (not tracked in git)
+
+│ └── clean_cell_images/ # Cleaned dataset used for training
+
+│
+
+├── notebooks/
+
+│ └── MalariaImageClassification.ipynb
+
+│
+
+├── models/
+
+│ └── malaria_model.keras # Trained model
+
+│
+
+├── app.py # Streamlit inference app
+
+├── requirements.txt
+
+└── README.md
 
 ## Getting Started
-### Prerequisites
-Make sure you have Python 3.x installed. Install required packages:
-``` bash
-pip install -r requirements.txt
-```
 
-### Run the Streamlit App
-Launch the web app to test predictions:
-``` bash
-streamlit run app.py
+### Prerequisites
+
+- Python 3.8+
+- Kaggle account (for downloading the dataset)
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
 ```
 
 ## Dataset
-The model uses the [Cell Images for Detecting Malaria dataset](https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria) from Kaggle.
-* Contains images of **Parasitized** and **Uninfected** blood cells.
-* Images are resized to 128x128 pixels for model training.
 
-## Model
-* **Architecture**: CNN with Conv2D, MaxPooling, Dense layers, and Dropout
-* **Loss Function**: Binary cross-entropy
-* **Optimizer**: Adam
-* **Performance**: Validation accuracy ~94%, with evaluation metrics including **confusion matrix** and **classification report**.
+Source:
+[Cell Images for Detecting Malaria - Kaggle](https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria)
 
-## Usage
-1. Clone the repository:
-``` bash
-git clone <repository-url>
-cd InnovateMUMachineLearningModel
+- ~27,000 labeled images
+- Two classes: **Parasitized**, **Uninfected**
+- Images resized to **128x128** for training
+- Data cleaned to remove duplicated nested folders
+
+---
+
+## Model Details
+
+- **Architecture**: Custom CNN
+  - Conv2D -> MaxPooling -> Dropout -> Dense
+- **Loss**: Binary Cross-Entropy
+- **Optimizer**: Adam
+- **Batch size**: 32
+- **Epochs**: 10-20
+
+### Performance
+
+- Validation Accuracy: ~**94%**
+- Evaluation includes:
+  - Confusion Matrix
+  - Precision, Recall, F1-score (classification report)
+
+---
+
+## Training the Model (Optional)
+
+If you want to retrain the model from scratch:
+
+1. Set up Kaggle API:
+   - Upload `kaggle.json` to your working directory
+   - Set permissions:
+   ```bash
+   chmod 600 kaggle.json
+   ```
+2. Run the notebook:
+
+```bash
+jupyter notebook notebooks/MalariaImageClassification.ipynb
 ```
-2. Install dependencies:
-``` bash
-pip install -r requirements.txt
-```
 
-3. Run the Streamlit app:
-``` bash
+The notebook:
+
+- Downloads the dataset from Kaggle
+- Cleans the folder structure
+- Trains the CNN
+- Saves the model to `models/malaria_model.keras`
+
+> Note: Training was performed on Google Colab using an NVIDIA A100 GPU for faster experimentation.
+
+---
+
+## Run the Streamlit App
+
+Use the pretrained model for inference:
+
+```bash
 streamlit run app.py
 ```
-4. Upload an image of a blood cell and see the prediction (Parasitized vs Uninfected).
+
+Steps:
+
+1. Upload a blood cell image
+2. The model predicts:
+   - **Parasitized** or **Uninfected**
+3. Displays prediction probability
+
+---
 
 ## Example Outputs
-![Infected Cell](images/example1.png)
 
-![Uninfected Cell](images/example2.png)
+---
+
+## Limitations
+
+- Trained on a single dataset (may not generalize to all microscopes)
+- Binary classification only (no parasite species classification)
+- No clinical validation (research/demo purpose only)
+
+---
+
+## Future Work
+
+- Add **transfer learning (ResNet, MobileNet, VGG16)**
+- Add **Grad-CAM visualizations** for model interpretability
+- Train on **multiple datasets for better generalization**
+- Deploy as a **cloud-hosted web app**
+
+---
 
 ## Acknowledgements
-* Dataset: [Kaggle - Cell Images for Detecting Malaria](https://www.kaggle.com/datasets/iarunava/cell-images-for-detecting-malaria)
-* Hackathon: **InnovateMU 2025**
+
+- Dataset: Kaggle - Cell Images for Detecting Malaria
+- Hackathon: **InnovateMU 2025**
+- Team Members: **Daniel Lai**, **Ewan Poirier**, **Srivathsav Arumugam**, **Ruth Ayele**
+- Tools: TensorFlow, Keras, Streamlit, Google Colab
+
+---
+
+## Disclaimer
+
+This project is for **research and educational purposes only** and is not intended for clinical use or medical diagnosis.
