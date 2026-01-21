@@ -86,6 +86,19 @@ Source:
 - **Batch size**: 32
 - **Epochs**: 10-20
 
+---
+
+## Model Comparison
+
+| Model          | Validation Accuracy |
+|----------------|---------------------|
+| Custom CNN     | ~94%                |
+| MobileNetV2   | ~91%                |
+
+Interestingly, the custom CNN slightly outperformed MobileNetV2 on this dataset, suggesting that simpler architectures may generalize better for this specific medical imaging task.
+
+---
+
 ### Performance
 
 - Validation Accuracy: ~**94%**
