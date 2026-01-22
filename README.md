@@ -90,12 +90,13 @@ Source:
 
 ## Model Comparison
 
-| Model          | Validation Accuracy |
-|----------------|---------------------|
-| Custom CNN     | ~94%                |
-| MobileNetV2   | ~91%                |
+| Model          | Strategy | Validation Accuracy |
+|----------------|----------|---------------------|
+| Custom CNN     | Trained from scratch | ~94%    |
+| MobileNetV2    | Transfer learning (frozen) | ~91%                |
+| MovileNetV2    | Fine-tuned top layers | **91.3%**|
 
-Interestingly, the custom CNN slightly outperformed MobileNetV2 on this dataset, suggesting that simpler architectures may generalize better for this specific medical imaging task.
+Conclusion: The custom CNN outperformed transfer learning on this dataset, suggesting that domain-specific feature learning was more effective than generic ImageNet features for microscopic cell images.
 
 ---
 
