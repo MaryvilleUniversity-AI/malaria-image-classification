@@ -86,6 +86,20 @@ Source:
 - **Batch size**: 32
 - **Epochs**: 10-20
 
+---
+
+## Model Comparison
+
+| Model          | Strategy | Validation Accuracy |
+|----------------|----------|---------------------|
+| Custom CNN     | Trained from scratch | ~94%    |
+| MobileNetV2    | Transfer learning (frozen) | ~91%                |
+| MobileNetV2    | Fine-tuned top layers | **91.3%**|
+
+Conclusion: The custom CNN outperformed transfer learning on this dataset, suggesting that domain-specific feature learning was more effective than generic ImageNet features for microscopic cell images.
+
+---
+
 ### Performance
 
 - Validation Accuracy: ~**94%**

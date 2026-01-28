@@ -36,3 +36,6 @@ data/
 
 # Ignore Kaggle API token
 kaggle.json
+
+# Ignore models
+models/
