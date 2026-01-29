@@ -170,6 +170,9 @@ Steps:
 
 ## Example Outputs
 
+![Uninfected Cell Prediction](results/app_images/uninfected_example.png)
+![Parasitized Cell Prediction](results/app_images/parasitized_example.png)
+
 ---
 
 ## Limitations
