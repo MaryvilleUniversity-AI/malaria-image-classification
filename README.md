@@ -26,25 +26,31 @@ malaria-image-classification/
 
 │
 
+├── notebooks/
+
+│ └── 01_baseline_and_frozen_models.ipynb
+
+│ └── 02_finetune_mobilenetv2.ipynb
+
+│ └── 03_model_evaluation.ipynb
+
+│
+
+├── results/
+
+│ └── all_confusion_matrices.png
+
+│ 
+
 ├── data/
 
-│ ├── raw/ # Raw Kaggle dataset (not tracked in git)
+│ └── raw/ # Raw Kaggle dataset (not tracked in git)
 
 │ └── clean_cell_images/ # Cleaned dataset used for training
 
 │
 
-├── notebooks/
-
-│ └── MalariaImageClassification.ipynb
-
-│
-
-├── models/
-
-│ └── malaria_model.keras # Trained model
-
-│
+├── .gitignore
 
 ├── app.py # Streamlit inference app
 
