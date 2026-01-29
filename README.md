@@ -26,25 +26,31 @@ malaria-image-classification/
 
 │
 
+├── notebooks/
+
+│ └── 01_baseline_and_frozen_models.ipynb
+
+│ └── 02_finetune_mobilenetv2.ipynb
+
+│ └── 03_model_evaluation.ipynb
+
+│
+
+├── results/
+
+│ └── all_confusion_matrices.png
+
+│ 
+
 ├── data/
 
-│ ├── raw/ # Raw Kaggle dataset (not tracked in git)
+│ └── raw/ # Raw Kaggle dataset (not tracked in git)
 
 │ └── clean_cell_images/ # Cleaned dataset used for training
 
 │
 
-├── notebooks/
-
-│ └── MalariaImageClassification.ipynb
-
-│
-
-├── models/
-
-│ └── malaria_model.keras # Trained model
-
-│
+├── .gitignore
 
 ├── app.py # Streamlit inference app
 
@@ -90,19 +96,22 @@ Source:
 
 ## Model Comparison
 
-| Model          | Strategy | Validation Accuracy |
-|----------------|----------|---------------------|
-| Custom CNN     | Trained from scratch | ~94%    |
-| MobileNetV2    | Transfer learning (frozen) | ~91%                |
-| MobileNetV2    | Fine-tuned top layers | **91.3%**|
+| Model                    | Strategy                              | Accuracy | Precision | Recall | F1    |
+|--------------------------|--------------------------------------|----------|-----------|--------|-------|
+| Custom CNN               | Trained from scratch                  | ~94%     | ~0.93     | ~0.95  | ~0.94 |
+| MobileNetV2 (Frozen)     | Transfer Learning (Frozen Layers)     | ~91%     | ~0.90     | ~0.91  | ~0.90 |
+| MobileNetV2 (Fine-Tuned) | Transfer Learning + Unfrozen Layers   | 94.01%   | 0.932     | 0.950  | 0.941 |
+
+## Confusion Matrices
+![Confusion Matrices](results/all_confusion_matrices.png)
 
 ### Key Observations
-- The **custom CNN achieved the highest validation accuracy**, outperforming both transfer learning approaches.
-- MobileNetV2 showed strong performance with limited training, demonstrating the effectiveness of pretrained features.
-- Fine-tuning MobileNetV2 resulted in a modest improvement over the frozen model.
+- The **custom CNN and fine-tuned MobileNetV2 achieved similar validation accuracy (~94%)**, indicating both models performed strongly on this dataset.
+- The frozen MobileNetV2 model performed slightly worse, showing that pretrained ImageNet features alone were not fully optimal for microscopic cell images.
+- Fine-tuning MobileNetV2 significantly improved performance, demonstrating the importance of adapting pretrained models to domain-specific data.
 
 ### Conclusion
-The custom CNN outperformed transfer learning on this dataset, suggesting that **domain-specific feature learning** was more effective than generic ImageNet features for microscopic cell images.
+Both the custom CNN and fine-tuned MobileNetV2 achieved high classification performance, with fine-tuning allowing the pretrained model to match the custom architecture. This suggests that while domain-specific feature learning is effective, pretrained models can achieve comparable results when properly adapted to the target domain.
 
 ---
 
