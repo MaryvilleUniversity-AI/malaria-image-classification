@@ -96,7 +96,13 @@ Source:
 | MobileNetV2    | Transfer learning (frozen) | ~91%                |
 | MobileNetV2    | Fine-tuned top layers | **91.3%**|
 
-Conclusion: The custom CNN outperformed transfer learning on this dataset, suggesting that domain-specific feature learning was more effective than generic ImageNet features for microscopic cell images.
+### Key Observations
+- The **custom CNN achieved the highest validation accuracy**, outperforming both transfer learning approaches.
+- MobileNetV2 showed strong performance with limited training, demonstrating the effectiveness of pretrained features.
+- Fine-tuning MobileNetV2 resulted in a modest improvement over the frozen model.
+
+### Conclusion
+The custom CNN outperformed transfer learning on this dataset, suggesting that **domain-specific feature learning** was more effective than generic ImageNet features for microscopic cell images.
 
 ---
 
