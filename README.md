@@ -96,6 +96,9 @@ Source:
 | MobileNetV2 (Frozen)     | Transfer Learning (Frozen Layers)     | ~91%     | ~0.90     | ~0.91  | ~0.90 |
 | MobileNetV2 (Fine-Tuned) | Transfer Learning + Unfrozen Layers   | 94.01%   | 0.932     | 0.950  | 0.941 |
 
+## Confusion Matrices
+![Confusion Matrices](results/confusion_matrices.png)
+
 ### Key Observations
 - The **custom CNN and fine-tuned MobileNetV2 achieved similar validation accuracy (~94%)**, indicating both models performed strongly on this dataset.
 - The frozen MobileNetV2 model performed slightly worse, showing that pretrained ImageNet features alone were not fully optimal for microscopic cell images.
