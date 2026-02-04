@@ -1,8 +1,4 @@
-# DEBUG
 import os
-print("Current Working Directory:", os.getcwd())
-print("Models folder exists:", os.path.exists("models"))
-print("Model file exists:", os.path.exists("models/custom_cnn.keras"))
 
 import streamlit as st
 from tensorflow.keras.models import load_model
