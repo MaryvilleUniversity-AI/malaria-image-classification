@@ -28,11 +28,11 @@ malaria-image-classification/
 
 ├── notebooks/
 
-│ └── 01_baseline_and_frozen_models.ipynb
+│ └── 01_baseline_and_frozen_models.ipynb -> Custom CNN + MobileNetV2 frozen training
 
-│ └── 02_finetune_mobilenetv2.ipynb
+│ └── 02_finetune_mobilenetv2.ipynb -> Fine-tuning MobileNetV2
 
-│ └── 03_model_evaluation.ipynb
+│ └── 03_model_evaluation.ipynb -> Model comparison and metrics visualization
 
 │
 
@@ -85,12 +85,53 @@ Source:
 
 ## Model Details
 
+### Custom CNN (Baseline)
+
 - **Architecture**: Custom CNN
   - Conv2D -> MaxPooling -> Dropout -> Dense
 - **Loss**: Binary Cross-Entropy
 - **Optimizer**: Adam
 - **Batch size**: 32
 - **Epochs**: 10-20
+
+---
+
+### MobileNetV2 (Frozen Feature Extractor)
+
+- **Base Model**: MobileNetV2 pretrained on ImageNet
+- **Transfer Learning Strategy**: Feature extraction (base layers frozen)
+- **Custom Head**: GlobalAveragePooling -> Dense -> Dropout -> Dense (sigmoid)
+- **Loss**: Binary Cross-Entropy
+- **Optimizer**: Adam
+- **Batch Size**: 32
+- **Epochs**: 10-15
+
+---
+
+### MobileNetV2 (Fine-Tuned)
+
+- **Base Model**: MobileNetV2 pretrained on ImageNet
+- **Transfer Learning Strategy**: Fine-tuning with top layers unfrozen
+- **Unfrozen layers**: Top convolutional blocks for domain adaptation
+- **Custom Head**: GlobalAveragePooling -> Dense -> Dropout -> Dense (sigmoid)
+- **Loss**: Binary Cross-Entropy
+- **Optimizer**: Adam (lower learning rate for stability)
+- **Batch size**: 32
+- **Epochs**: 10-15
+
+---
+
+## Pretrained Models
+Due to GitHub file size limits, trained model weights are not stored directly in the repository.
+They are available in the **GitHub Releases** section of this repository:
+- Custom CNN trained from scratch
+- MobileNetV2 with frozen base layers (feature extraction)
+- MobileNetV2 fine-tuned with unfrozen layers
+
+Download models from:
+[MaryvilleUniversity-AI Releases](https://github.com/MaryvilleUniversity-AI/malaria-image-classification/releases)
+
+After downloading, place the models in a `models/` directory before running inference.
 
 ---
 
@@ -161,10 +202,11 @@ streamlit run app.py
 
 Steps:
 
-1. Upload a blood cell image
-2. The model predicts:
+1. Choose a model to use
+2. Upload a blood cell image
+3. The model predicts:
    - **Parasitized** or **Uninfected**
-3. Displays prediction probability
+4. Displays prediction probability and the model's confidence
 
 ---
 
@@ -194,10 +236,10 @@ Steps:
 
 ## Acknowledgements
 
-- Dataset: Kaggle - Cell Images for Detecting Malaria
-- Hackathon: **InnovateMU 2025**
-- Team Members: **Daniel Lai**, **Ewan Poirier**, **Srivathsav Arumugam**, **Ruth Ayele**
+- Original project developed for the **InnovateMU 2025 Hackathon** by Daniel Lai, Ewan Poirier, Srivathsav Arumugam, and Ruth Ayele.
+- This repository is a **fork maintained by the MaryvilleUniversity-AI GitHub organization**, furthering the project for research and educational purposes by an apprentice contributor.
 - Tools: TensorFlow, Keras, Streamlit, Google Colab
+- Dataset: Kaggle - Cell Images for Detecting Malaria
 
 ---
 
