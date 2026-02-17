@@ -115,7 +115,7 @@ file = st.file_uploader("Upload a Cell Image", type=['jpg', 'png', 'jpeg'])
 if file is not None:
   # Display original upload
   image = Image.open(file).convert("RGB")
-  st.image(image, caption="Uploaded Cell Image", use_column_width=True)
+  st.image(image, caption="Uploaded Cell Image", width=600)
 
   # Preprocess image for selected model
   img_array = preprocess_for_model(image, model_choice)
@@ -146,12 +146,12 @@ if file is not None:
     heatmap_color = cv2.applyColorMap(np.uint8(255 * heatmap_small), cv2.COLORMAP_JET)
     overlay_small = cv2.addWeighted(small_img, 0.6, heatmap_color, 0.4, 0)
 
-    st.image(overlay_small, caption="Grad-CAM Overlay (128x128)", use_column_width=True)
+    st.image(overlay_small, caption="Grad-CAM Overlay (128x128)", width=600)
 
     # --- Display Full Resolution Overlay ---
     full_img = np.array(image)
     overlay_full = overlay_gradcam_full(full_img, heatmap)
-    st.image(overlay_full, caption="Grad-CAM Overlay (Original size)", use_column_width=True)
+    st.image(overlay_full, caption="Grad-CAM Overlay (Original size)", width=600)
 
   # Preprocess image
   # img = image.load_img(file, target_size=(128, 128))
