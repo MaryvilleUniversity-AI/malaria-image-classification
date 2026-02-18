@@ -1,67 +1,166 @@
 import os
 
 import streamlit as st
+import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras import layers, models
+from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as mobilenet_preprocess
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import numpy as np
 import cv2
-import tensorflow as tf
 import matplotlib.pyplot as plt
 from PIL import Image
 
-print(cv2.__version__)
+# Custom CNN Architecture
+def build_custom_cnn(input_shape=(128, 128,3)):
+  inputs = layers.Input(shape=input_shape)
+
+  x = layers.Conv2D(32, (3, 3), activation="relu")(inputs)
+  x = layers.MaxPooling2D()(x)
+
+  x = layers.Conv2D(64, (3, 3), activation="relu")(x)
+  x = layers.MaxPooling2D()(x)
+
+  x = layers.Conv2D(128, (3, 3), activation="relu")(x)
+  x = layers.MaxPooling2D()(x)
+
+  x = layers.Flatten()(x)
+  x = layers.Dense(128, activation="relu")(x)
+  outputs = layers.Dense(1, activation="sigmoid")(x)
+
+  model = models.Model(inputs, outputs, name="custom_cnn")
+  return model
+
+# MobileNetV2 (Frozen)
+def build_mobilenetv2_frozen(input_shape=(128, 128,3)):
+  base_model = MobileNetV2(
+    input_shape=input_shape,
+    include_top=False,
+    weights="imagenet"
+  )
+
+  base_model.trainable = False
+
+  inputs = layers.Input(shape=input_shape)
+  x = preprocess_input(inputs)
+  x = base_model(x, training=False)
+  x = layers.GlobalAveragePooling2D()(x)
+  outputs = layers.Dense(1, activation="sigmoid")(x)
+
+  model = models.Model(inputs, outputs, name="mobilenetv2_frozen")
+  return model
+
+# MobileNetV2 (Fine-Tuned)
+def build_mobilenetv2_finetuned(input_shape=(128, 128,3)):
+  base_model = MobileNetV2(
+    input_shape=input_shape,
+    include_top=False,
+    weights="imagenet"
+  )
+
+  # Unfreeze last 30 layers
+  for layer in base_model.layers[:-30]:
+    layer.trainable = False
+  for layer in base_model.layers[-30:]:
+    layer.trainable = True
+
+  inputs = layers.Input(shape=input_shape)
+  x = preprocess_input(inputs)
+  x = base_model(x, training=False)
+  x = layers.GlobalAveragePooling2D()(x)
+  outputs = layers.Dense(1, activation="sigmoid")(x)
+
+  model = models.Model(inputs, outputs, name="mobilenetv2_finetuned")
+  return model
+
 
 # Grad-CAM heatmap generator
-def make_gradcam_heatmap(img_array, model, last_conv_layer_name):
-  try:
-    grad_model = tf.keras.models.Model(
-      inputs=model.input,
-      outputs=[model.get_layer(last_conv_layer_name).output, model.output]
+def make_gradcam_heatmap(img_array, model):
+  # Find last convolutional layer automatically
+  last_conv_layer = None
+  for layer in reversed(model.layers):
+    if isinstance(layer, tf.keras.layers.Conv2D):
+      last_conv_layer = layer
+      break
+
+  if last_conv_layer is None:
+    raise ValueError("No Conv2D layer found.")
+  
+  grad_model = tf.keras.models.Model(
+      inputs=model.inputs,
+      outputs=[last_conv_layer.output, model.output]
     )
   
-    with tf.GradientTape() as tape:
-      conv_outputs, predictions = grad_model(img_array)
-      loss = predictions[:, 0]
+  # Pass the input using a keyword
+  with tf.GradientTape() as tape:
+    conv_outputs, predictions = grad_model(img_array, training=False)
+    loss = predictions[:, 0]
 
-    grads = tape.gradient(loss, conv_outputs)
-    pooled_grads = tf.reduce_mean(grads, axis=(0,1,2))
+  grads = tape.gradient(loss, conv_outputs)
+  pooled_grads = tf.reduce_mean(grads, axis=(0,1,2))
 
-    conv_outputs = conv_outputs[0]
-    heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
-    heatmap = tf.squeeze(heatmap)
-    heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
-    return heatmap.numpy()
+  conv_outputs = conv_outputs[0]
+  heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
+  heatmap = tf.squeeze(heatmap)
 
-  except Exception:
-    # Fallback for simple Sequential
-    input_tensor = tf.keras.Input(shape=img_array.shape[1:])
-    x = input_tensor
-    conv_outputs = None
+  heatmap = tf.maximum(heatmap, 0)
+  heatmap /= (tf.reduce_max(heatmap) + 1e-8)
 
-    for layer in model.layers:
-      x = layer(x)
-      if layer.name == last_conv_layer_name:
-        conv_output = x
+  return heatmap.numpy()
 
-    if conv_output is None:
-      raise ValueError(f"Layer {last_conv_layer_name} not found.")
+# def make_gradcam_heatmap(img_array, model, last_conv_layer_name):
+#   try:
+#     # Grad-CAM via Functional API
+#     grad_model = tf.keras.models.Model(
+#       inputs=model.input,
+#       outputs=[model.get_layer(last_conv_layer_name).output, model.output]
+#     )
+  
+#     # Pass the input using a keyword
+#     with tf.GradientTape() as tape:
+#       conv_outputs, predictions = grad_model(img_array, training=False)
+#       loss = predictions[:, 0]
 
-    replay_model = tf.keras.Model(inputs=input_tensor, outputs=[conv_output, x])
+#     grads = tape.gradient(loss, conv_outputs)
+#     pooled_grads = tf.reduce_mean(grads, axis=(0,1,2))
 
-    with tf.GradientTape() as tape:
-      conv_output, predictions = replay_model(img_array)
-      loss = predictions[:, 0]
+#     conv_outputs = conv_outputs[0]
+#     heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
+#     heatmap = tf.squeeze(heatmap)
+#     heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
+#     return heatmap.numpy()
 
-    grads = tape.gradient(loss, conv_output)
-    pooled_grads = tf.reduce_mean(grads, axis=(0,1,2))
+#   except Exception as e:
+#     # Fallback for simple Sequential models (no functional graph)
+#     input_tensor = tf.keras.Input(shape=img_array.shape[1:])
+#     x = input_tensor
+#     conv_output = None
 
-    conv_output = conv_output[0]
-    heatmap = conv_output @ pooled_grads[..., tf.newaxis]
-    heatmap = tf.squeeze(heatmap)
-    heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
+#     for layer in model.layers:
+#       x = layer(x)
+#       if layer.name == last_conv_layer_name:
+#         conv_output = x
 
-    return heatmap.numpy()
+#     if conv_output is None:
+#       raise ValueError(f"Layer {last_conv_layer_name} not found.")
+
+#     replay_model = tf.keras.Model(inputs=input_tensor, outputs=[conv_output, x])
+
+#     with tf.GradientTape() as tape:
+#       conv_output, predictions = replay_model(inputs=img_array)
+#       loss = predictions[:, 0]
+
+#     grads = tape.gradient(loss, conv_output)
+#     pooled_grads = tf.reduce_mean(grads, axis=(0,1,2))
+
+#     conv_output = conv_output[0]
+#     heatmap = conv_output @ pooled_grads[..., tf.newaxis]
+#     heatmap = tf.squeeze(heatmap)
+#     heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
+
+#     return heatmap.numpy()
 
 # Overlay display helper (returns image)
 def overlay_gradcam_full(img, heatmap, alpha=0.4):
@@ -87,27 +186,38 @@ def preprocess_for_model(img, model_choice):
 # Cache models so they are loaded only once
 @st.cache_resource
 def load_models():
-  models = {
-    "Custom CNN": load_model("/workspaces/malaria-image-classification/models/custom_cnn.keras"),
-    "MobileNetV2 (Frozen)": load_model("/workspaces/malaria-image-classification/models/malaria_mobilenetv2_finetuned.keras"),
-    "MobileNetV2 (Fine-tuned)": load_model("/workspaces/malaria-image-classification/models/malaria_mobilenetv2_frozen.keras")
+  # --- Custom CNN ---
+  custom_model = build_custom_cnn()
+  custom_model = tf.keras.models.load_model("/workspaces/malaria-image-classification/models/custom_cnn.keras")
+
+  # --- MobileNetV2 Frozen ---
+  mobilenet_frozen = build_mobilenetv2_frozen()
+  mobilenet_frozen.load_weights("/workspaces/malaria-image-classification/models/malaria_mobilenetv2_frozen.keras")
+
+  # --- MobileNetV2 Fine-Tuned ---
+  mobilenet_finetuned = build_mobilenetv2_finetuned()
+  mobilenet_finetuned.load_weights("/workspaces/malaria-image-classification/models/malaria_mobilenetv2_finetuned.keras")
+
+  return {
+    "Custom CNN": custom_model,
+    "MobileNetV2 (Frozen)": mobilenet_frozen,
+    "MobileNetV2 (Fine-tuned)": mobilenet_finetuned
   }
-  return models
 
 # Load models
-models = load_models()
+models_dict = load_models()
 
 # Streamlit UI
 st.title("Malaria Cell Detection App")
 st.write("Upload a blood cell image and select a model to classify it.")
 
 # Model selection dropdown
-model_choice = st.selectbox(
+selected_model_name = st.selectbox(
   "Choose a model:",
-  list(models.keys())
+  list(models_dict.keys())
 )
 
-model = models[model_choice]
+model = models_dict[selected_model_name]
 
 # File uploader
 file = st.file_uploader("Upload a Cell Image", type=['jpg', 'png', 'jpeg'])
@@ -136,7 +246,7 @@ if file is not None:
   
   try:
     # Compute Grad-CAM heatmap
-    heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name)
+    heatmap = make_gradcam_heatmap(img_array, model)
   except Exception as e:
     st.error(f"Grad-CAM failed: {e}")
   else:
