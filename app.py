@@ -79,6 +79,12 @@ def build_mobilenetv2_finetuned(input_shape=(128, 128,3)):
 
   return model
 
+# Helper function to get last Conv2D layer name
+def get_last_conv_layer_name(model):
+  for layer in reversed(model.layers):
+    if isinstance(layer, tf.keras.layers.Conv2D):
+      return layer.name
+  raise ValueError("No Conv2D layer found in model.")
 
 # Grad-CAM heatmap generator
 def make_gradcam_heatmap(img_array, model, last_conv_layer_name):
@@ -119,17 +125,15 @@ def overlay_gradcam_full(img, heatmap, alpha=0.4):
 
 # Preprocess
 def preprocess_for_model(img, model_choice):
+  img = img.resize((128,128))
+  arr = np.array(img)
+
   if "MobileNetV2" in model_choice:
-    # Use MobileNetV2 preprocessing & resize to expected 128x128
-    img = img.resize((128,128))
-    arr = np.array(img)
     arr = mobilenet_preprocess(arr)
-    return np.expand_dims(arr, axis=0)
   else:
-    # Custom CNN uses simple 0-1 scale
-    img = img.resize((128,128))
-    arr = np.array(img) / 255.0
-    return np.expand_dims(arr, axis=0)
+    arr = arr / 255.0
+
+  return np.expand_dims(arr, axis=0)
 
 # Cache models so they are loaded only once
 @st.cache_resource
@@ -174,29 +178,46 @@ if file:
   image = Image.open(file).convert("RGB")
   st.image(image, caption="Uploaded Image", width=400)
 
-  # Preprocess
-  img_array = np.array(image.resize((128, 128)))
-  if "MobileNetV2" in selected_model_name:
-    img_array = mobilenet_preprocess(img_array)
-  else:
-    img_array = img_array / 255.0
-  img_array = np.expand_dims(img_array, axis=0)
+  # Dictionary to store predictions
+  results = {}
 
-  # Predict
-  pred = model.predict(img_array)[0][0]
-  pred_class = "Uninfected" if pred > 0.5 else "Infected"
-  confidence = pred if pred > 0.5 else 1 - pred
+  # Run through all models
+  for name, model in models_dict.items():
+    img_array = preprocess_for_model(image, name)
+    pred = model.predict(img_array)[0][0]
+    # Calculate confidence
+    confidence = pred if pred > 0.5 else 1 - pred
+    pred_class = "Uninfected" if pred > 0.5 else "Infected"
+    results[name] = {"class": pred_class, "confidence": confidence}
 
-  st.write(f"**Prediction:** {pred_class} ({confidence:.2%} confidence)")
+  # Find the model with the highest confidence
+  best_model = max(results, key=lambda k: results[k]["confidence"])
+  best_result = results[best_model]
 
-  # Select correct last conv layer
-  if "Custom CNN" in selected_model_name:
-    last_conv_layer_name = "conv2d_1"
-  else:
-    last_conv_layer_name = "Conv_1"
+  st.write(f"**Best Prediction:** {best_result['class']} "
+           f"({best_result['confidence']:.2%} confidence) "
+           f"by **{best_model}**")
+
+  # Show all model predictions
+  st.write("**All model predictions:**")
+  for name, res in results.items():
+    st.write(f"{name}: {res['class']} ({res['confidence']:.2%})")
 
   try:
-    heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name)
+    best_model_obj = models_dict[best_model]
+
+    # Select correct last conv layer
+    if "Custom CNN" in selected_model_name:
+      last_conv_layer_name = get_last_conv_layer_name(models_dict[best_model])
+    else:
+      last_conv_layer_name = "Conv_1"
+
+    img_array = preprocess_for_model(image, best_model)
+
+    heatmap = make_gradcam_heatmap(
+      img_array, 
+      best_model_obj, 
+      last_conv_layer_name)
 
     heatmap_resized = cv2.resize(heatmap, (image.width, image.height))
     heatmap_colored = cv2.applyColorMap(
