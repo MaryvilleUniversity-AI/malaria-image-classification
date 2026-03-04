@@ -129,9 +129,9 @@ pip install -r requirements.txt
 
 | Model                    | Strategy                              | Accuracy | Precision | Recall | F1    |
 |--------------------------|--------------------------------------|----------|-----------|--------|-------|
-| Custom CNN               | Trained from scratch                  | ~94%     | ~0.93     | ~0.95  | ~0.94 |
-| MobileNetV2 (Frozen)     | Transfer Learning (Frozen Layers)     | ~91%     | ~0.90     | ~0.91  | ~0.90 |
-| MobileNetV2 (Fine-Tuned) | Transfer Learning + Unfrozen Layers   | 94.01%   | 0.932     | 0.950  | 0.941 |
+| Custom CNN               | Trained from scratch                  | ~94%     | ~0.94     | ~0.94  | ~0.94 |
+| MobileNetV2 (Frozen)     | Transfer Learning (Frozen Layers)     | ~91%     | ~0.91     | ~0.91  | ~0.91 |
+| MobileNetV2 (Fine-Tuned) | Transfer Learning + Unfrozen Layers   | 94%   | 0.94     | 0.94  | 0.94 |
 
 ## Confusion Matrices
 ![Confusion Matrices](results/all_confusion_matrices.png)
