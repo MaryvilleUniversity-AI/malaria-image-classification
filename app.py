@@ -207,10 +207,7 @@ if file:
     best_model_obj = models_dict[best_model]
 
     # Select correct last conv layer
-    if "Custom CNN" in selected_model_name:
-      last_conv_layer_name = get_last_conv_layer_name(models_dict[best_model])
-    else:
-      last_conv_layer_name = "Conv_1"
+    last_conv_layer_name = get_last_conv_layer_name(best_model_obj)
 
     img_array = preprocess_for_model(image, best_model)
 
