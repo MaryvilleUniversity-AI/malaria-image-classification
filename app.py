@@ -7,7 +7,6 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as mobilenet_preprocess
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
 from tensorflow.keras.models import Model
 import numpy as np
@@ -15,9 +14,7 @@ import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 
-# Clear all cached resources
-st.cache_resource.clear()
-
+# ---- Model Builders ----
 # Custom CNN Architecture
 def build_custom_cnn(input_shape=(128, 128,3)):
   inputs = tf.keras.Input(shape=input_shape)
@@ -79,6 +76,7 @@ def build_mobilenetv2_finetuned(input_shape=(128, 128,3)):
 
   return model
 
+# ---- Helper Functions ----
 # Helper function to get last Conv2D layer name
 def get_last_conv_layer_name(model):
   for layer in reversed(model.layers):
@@ -99,7 +97,8 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name):
 
   with tf.GradientTape() as tape:
     conv_outputs, predictions = grad_model(img_array, training=False)
-    loss = predictions[:, 0]
+    class_index = 0
+    loss = predictions[:, class_index]
   
   grads = tape.gradient(loss, conv_outputs)
 
@@ -135,6 +134,7 @@ def preprocess_for_model(img, model_choice):
 
   return np.expand_dims(arr, axis=0)
 
+# ---- Load Models (cached) ----
 # Cache models so they are loaded only once
 @st.cache_resource
 def load_models():
@@ -159,9 +159,9 @@ def load_models():
 # Load models
 models_dict = load_models()
 
-# Streamlit UI
+# ---- Streamlit UI ----
 st.title("Malaria Cell Detection App")
-st.write("Upload a blood cell image and select a model to classify it.")
+st.caption("Compare Custom CNN vs MobileNetV2 for malaria cell classification with optional Grad-CAM visualization.")
 
 # Model selection dropdown
 selected_model_name = st.selectbox(
@@ -169,68 +169,71 @@ selected_model_name = st.selectbox(
   list(models_dict.keys())
 )
 
+show_gradcam = st.checkbox("Show Grad-CAM")
+
 model = models_dict[selected_model_name]
 
 # File uploader
 file = st.file_uploader("Upload a Cell Image", type=['jpg', 'png', 'jpeg'])
 
 if file:
+
+  col1, col2 = st.columns(2)
   image = Image.open(file).convert("RGB")
-  st.image(image, caption="Uploaded Image", width=400)
+  with col1:
+    st.image(image, caption="Uploaded Image", width=400)
 
   # Dictionary to store predictions
   results = {}
 
   # Run through all models
-  for name, model in models_dict.items():
+  for name, model_obj in models_dict.items():
     img_array = preprocess_for_model(image, name)
-    pred = model.predict(img_array)[0][0]
+    pred = float(model_obj(img_array, training=False)[0][0])
+
     # Calculate confidence
-    confidence = pred if pred > 0.5 else 1 - pred
-    pred_class = "Uninfected" if pred > 0.5 else "Infected"
+    threshold = 0.5
+
+    if pred >= threshold:
+      pred_class = "Uninfected"
+      confidence = pred
+    else:
+      pred_class = "Infected"
+      confidence = 1 - pred
     results[name] = {"class": pred_class, "confidence": confidence}
-
-  # Find the model with the highest confidence
-  best_model = max(results, key=lambda k: results[k]["confidence"])
-  best_result = results[best_model]
-
-  st.write(f"**Best Prediction:** {best_result['class']} "
-           f"({best_result['confidence']:.2%} confidence) "
-           f"by **{best_model}**")
+    
+  # Display selected model prediction
+  selected_result = results[selected_model_name]
+  st.subheader("Selected Model Prediction")
+  st.metric(
+    label="Confidence",
+    value=f"{selected_result['confidence']:.2%}"
+  )
+  if selected_result["class"] == "Infected":
+    st.error(f"Infected ({selected_result['confidence']:.2%})")
+  else:
+    st.success(f"Uninfected ({selected_result['confidence']:.2%})")
 
   # Show all model predictions
-  st.write("**All model predictions:**")
-  for name, res in results.items():
-    st.write(f"{name}: {res['class']} ({res['confidence']:.2%})")
+  st.subheader("All Model Predictions")
+  cols = st.columns(len(results))
+  for col, (name, res) in zip(cols, results.items()):
+    with col:
+      st.write(f"**{name}**")
+      st.write(f"{res['class']}")
+      st.write(f"{res['confidence']:.2%}")
 
-  try:
-    best_model_obj = models_dict[best_model]
+  # Grad-CAM
+  if show_gradcam:
+    try:
+      best_model_obj = models_dict[selected_model_name]
+      last_conv_layer_name = get_last_conv_layer_name(best_model_obj)
+      img_array = preprocess_for_model(image, selected_model_name)
+      heatmap = make_gradcam_heatmap(img_array, best_model_obj, last_conv_layer_name)
 
-    # Select correct last conv layer
-    last_conv_layer_name = get_last_conv_layer_name(best_model_obj)
-
-    img_array = preprocess_for_model(image, best_model)
-
-    heatmap = make_gradcam_heatmap(
-      img_array, 
-      best_model_obj, 
-      last_conv_layer_name)
-
-    heatmap_resized = cv2.resize(heatmap, (image.width, image.height))
-    heatmap_colored = cv2.applyColorMap(
-      np.uint8(255 * heatmap_resized),
-      cv2.COLORMAP_JET
-    )
-
-    overlay = cv2.addWeighted(
-      np.array(image),
-      0.6,
-      heatmap_colored,
-      0.4,
-      0
-    )
-
-    st.image(overlay, caption="Grad-CAM Visualization", width=400)
-
-  except Exception  as e:
-    st.error(f"Grad-CAM failed: {e}")
+      overlay = overlay_gradcam_full(np.array(image), heatmap, alpha=0.4)
+      
+      with col2:
+        st.image(overlay, caption="Grad-CAM Visualization", width=400)
+    except Exception  as e:
+      st.error(f"Grad-CAM failed: {e}")
