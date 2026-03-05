@@ -231,8 +231,10 @@ if file:
       img_array = preprocess_for_model(image, selected_model_name)
       heatmap = make_gradcam_heatmap(img_array, best_model_obj, last_conv_layer_name)
 
-      overlay = overlay_gradcam_full(np.array(image), heatmap, alpha=0.4)
-      
+      img_array_np = np.array(image)
+      heatmap_resized = cv2.resize(heatmap, (img_array_np.shape[1], img_array_np.shape[0]))
+      overlay = overlay_gradcam_full(img_array_np, heatmap_resized, alpha=0.4)
+
       with col2:
         st.image(overlay, caption="Grad-CAM Visualization", width=400)
     except Exception  as e:
