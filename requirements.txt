@@ -26,10 +26,12 @@ decorator==5.2.1
 defusedxml==0.7.1
 executing==2.2.1
 fastjsonschema==2.21.2
+filelock==3.25.2
 flatbuffers==25.12.19
 fonttools==4.61.1
 fqdn==1.5.1
 gast==0.7.0
+gdown==5.2.1
 gitdb==4.0.12
 GitPython==3.1.45
 google-pasta==0.2.0
@@ -103,6 +105,7 @@ pycparser==2.23
 pydeck==0.9.1
 Pygments==2.19.2
 pyparsing==3.3.2
+PySocks==1.7.1
 python-dateutil==2.9.0.post0
 python-json-logger==4.0.0
 pytz==2025.2
@@ -132,6 +135,7 @@ terminado==0.18.1
 tinycss2==1.4.0
 toml==0.10.2
 tornado==6.5.2
+tqdm==4.67.3
 traitlets==5.14.3
 typing_extensions==4.15.0
 tzdata==2025.2
