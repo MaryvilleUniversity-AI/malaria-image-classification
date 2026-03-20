@@ -102,8 +102,7 @@ git clone <https://github.com/MaryvilleUniversity-AI/malaria-image-classificatio
 cd malaria-image-classification
 pip install -r requirements.txt
 ```
-2. Download pretrained models from [Releases](https://github.com/MaryvilleUniversity-AI/malaria-image-classification/releases/tag/v1.1) and place in `models/`
-3. Run the Streamlit app:
+2. Run the Streamlit app:
 > **Linux / GitHub Codespaces / WSL users**: you need OpenGL for image rendering
   ```bash
   sudo apt-get update
@@ -114,9 +113,8 @@ pip install -r requirements.txt
   ```bash
   streamlit run app.py
   ```
-4. Use the app:
+3. Use the app:
   * Upload a blood cell image
-  * Select a model (**Custom CNN** or **MobileNetV2**)
   * View **prediction**, **confidence rate**, and **Grad-CAM overlay**
 
 ## Example Outputs
