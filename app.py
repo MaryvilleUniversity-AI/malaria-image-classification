@@ -33,8 +33,6 @@ def download_models():
       print(f"Downloading {filename}...")
       gdown.download(url, output_path, quiet=True)
 
-  st.write("Downloading model files (first run only)...")
-
 # ---- Model Builders ----
 # Custom CNN Architecture
 def build_custom_cnn(input_shape=(128, 128,3)):
@@ -191,21 +189,19 @@ with st.spinner("Loading models..."):
 
 # ---- Streamlit UI ----
 st.title("Malaria Cell Detection App")
-st.caption("Compare Custom CNN vs MobileNetV2 for malaria cell classification with optional Grad-CAM visualization.")
 st.info(
-  "This model analyzes microscopic cell images to detect malaria infection."
+  "This model analyzes microscopic cell images to detect malaria infection. "
   "Grad-CAM highlights regions most important for the prediction."
-)
-
-# Model selection dropdown
-selected_model_name = st.selectbox(
-  "Choose a model:",
-  list(models_dict.keys())
 )
 
 show_gradcam = st.checkbox("Show Grad-CAM")
 
-model = models_dict[selected_model_name]
+gradcam_model_name = None
+if show_gradcam:
+  gradcam_model_name = st.selectbox(
+    "Select model for Grad-CAM:",
+    list(models_dict.keys())
+  )
 
 # File uploader
 file = st.file_uploader("Upload a Cell Image", type=['jpg', 'png', 'jpeg'])
@@ -236,17 +232,7 @@ if file:
       confidence = 1 - pred
     results[name] = {"class": pred_class, "confidence": confidence}
     
-  # Display selected model prediction
-  selected_result = results[selected_model_name]
-  st.subheader("Selected Model Prediction")
-  st.metric(
-    label="Confidence",
-    value=f"{selected_result['confidence']:.2%}"
-  )
-  if selected_result["class"] == "Infected":
-    st.error(f"Infected ({selected_result['confidence']:.2%})")
-  else:
-    st.success(f"Uninfected ({selected_result['confidence']:.2%})")
+  st.subheader("Model Prediction Summary")
 
   # Show all model predictions
   st.subheader("All Model Predictions")
@@ -260,9 +246,9 @@ if file:
   # Grad-CAM
   if show_gradcam:
     try:
-      best_model_obj = models_dict[selected_model_name]
+      best_model_obj = models_dict[gradcam_model_name]
       last_conv_layer_name = get_last_conv_layer_name(best_model_obj)
-      img_array = preprocess_for_model(uploaded_image, selected_model_name)
+      img_array = preprocess_for_model(uploaded_image, gradcam_model_name)
       heatmap = make_gradcam_heatmap(img_array, best_model_obj, last_conv_layer_name)
 
       img_array_np = np.array(uploaded_image)
@@ -270,6 +256,7 @@ if file:
       overlay = overlay_gradcam_full(img_array_np, heatmap_resized, alpha=0.4)
 
       with col2:
-        st.image(overlay, caption="Grad-CAM Visualization", width=400)
+        st.image(overlay, caption=f"Grad-CAM ({gradcam_model_name})", width=400)
+
     except Exception  as e:
       st.error(f"Grad-CAM failed: {e}")
